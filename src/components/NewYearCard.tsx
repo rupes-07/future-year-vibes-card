@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import ThreeScene from './ThreeScene';
@@ -14,12 +15,24 @@ const positiveQuotes = [
   "In this remarkable age,\nmay 2082 exceed your wildest dreams."
 ];
 
+const loveQuotes = [
+  "As we enter 2082, may the love we share\ngrow stronger with each passing day.",
+  "In this future world of 2082,\nour love remains the greatest innovation.",
+  "May our hearts beat as one\nthrough all the wonders of 2082.",
+  "The stars of 2082 shine brightly,\nbut not as bright as my love for you.",
+  "In 2082, I cherish every moment\nwe create together in this new era.",
+  "As technology evolves in 2082,\nmy love for you remains timeless.",
+  "Together we'll navigate the marvels of 2082,\nhand in hand, heart in heart.",
+  "The future holds infinite possibilities in 2082,\nbut you remain my constant."
+];
+
 const NewYearCard: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentQuote, setCurrentQuote] = useState("");
   const [showQuote, setShowQuote] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
+  const [quoteType, setQuoteType] = useState("positive");
 
   const handleButtonClick = () => {
     if (isAnimating) return;
@@ -27,10 +40,15 @@ const NewYearCard: React.FC = () => {
     setIsAnimating(true);
     setHasStarted(true);
     
-    // Select random quote
-    const randomIndex = Math.floor(Math.random() * positiveQuotes.length);
+    // Toggle between positive and love quotes
+    const newQuoteType = quoteType === "positive" ? "love" : "positive";
+    setQuoteType(newQuoteType);
+    
+    // Select random quote from the current quote type
+    const quoteArray = newQuoteType === "positive" ? positiveQuotes : loveQuotes;
+    const randomIndex = Math.floor(Math.random() * quoteArray.length);
     setQuoteIndex(randomIndex);
-    setCurrentQuote(positiveQuotes[randomIndex]);
+    setCurrentQuote(quoteArray[randomIndex]);
     
     // Show quote after a delay
     setTimeout(() => {
@@ -55,13 +73,14 @@ const NewYearCard: React.FC = () => {
     if (!isAnimating || !showQuote) return;
     
     const interval = setInterval(() => {
-      let nextIndex = (quoteIndex + 1) % positiveQuotes.length;
+      const quoteArray = quoteType === "positive" ? positiveQuotes : loveQuotes;
+      let nextIndex = (quoteIndex + 1) % quoteArray.length;
       setQuoteIndex(nextIndex);
-      setCurrentQuote(positiveQuotes[nextIndex]);
+      setCurrentQuote(quoteArray[nextIndex]);
     }, 8000);
     
     return () => clearInterval(interval);
-  }, [isAnimating, showQuote, quoteIndex]);
+  }, [isAnimating, showQuote, quoteIndex, quoteType]);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center">
@@ -88,7 +107,9 @@ const NewYearCard: React.FC = () => {
               ? "Celebrate 2082" 
               : isAnimating 
                 ? "Experiencing the Future..." 
-                : "Explore More Visions"
+                : quoteType === "positive"
+                  ? "Show Love Quotes"
+                  : "Show Positive Quotes"
             }
           </span>
         </Button>

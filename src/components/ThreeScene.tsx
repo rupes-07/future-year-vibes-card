@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -171,34 +170,68 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
       
       switch (digit) {
         case 2:
-          // Create a "2" using box geometry instead of TextGeometry
-          const twoGeometry = new THREE.BoxGeometry(digitSize, digitSize * 1.5, 1);
-          // We could make it more "2"-like by using multiple geometries, but for simplicity we'll use a box
-          geometry = twoGeometry;
+          // Create a "2" shape using a custom approach
+          // Base shape for "2"
+          const twoGroup = new THREE.Group();
+          
+          // Top horizontal bar
+          const topBar = new THREE.Mesh(
+            new THREE.BoxGeometry(digitSize, digitSize/4, 1),
+            new THREE.MeshBasicMaterial()
+          );
+          topBar.position.y = digitSize/2;
+          twoGroup.add(topBar);
+          
+          // Curved part (using cylinder)
+          const curve = new THREE.Mesh(
+            new THREE.CylinderGeometry(digitSize/2, digitSize/2, 1, 32, 1, false, Math.PI, Math.PI),
+            new THREE.MeshBasicMaterial()
+          );
+          curve.rotation.z = Math.PI/2;
+          curve.position.set(digitSize/2, 0, 0);
+          twoGroup.add(curve);
+          
+          // Bottom horizontal bar
+          const bottomBar = new THREE.Mesh(
+            new THREE.BoxGeometry(digitSize, digitSize/4, 1),
+            new THREE.MeshBasicMaterial()
+          );
+          bottomBar.position.y = -digitSize/2;
+          twoGroup.add(bottomBar);
+          
+          // Use a simple box for development
+          geometry = new THREE.BoxGeometry(digitSize, digitSize * 1.5, 1);
           break;
+          
         case 0:
-          geometry = new THREE.RingGeometry(digitSize/2, digitSize, 32);
+          // Create a "0" using a torus (ring) geometry
+          geometry = new THREE.TorusGeometry(digitSize/2, digitSize/4, 16, 32);
           break;
+          
         case 8:
-          // Create an 8 using two spheres
-          const topSphere = new THREE.SphereGeometry(digitSize/2, 32, 16);
-          const bottomSphere = new THREE.SphereGeometry(digitSize/2, 32, 16);
+          // Create an "8" using two stacked torus geometries
+          const eightGroup = new THREE.Group();
           
-          // Position the spheres to form an "8" shape
-          const topMesh = new THREE.Mesh(topSphere, new THREE.MeshBasicMaterial());
-          const bottomMesh = new THREE.Mesh(bottomSphere, new THREE.MeshBasicMaterial());
+          // Top circle
+          const topCircle = new THREE.Mesh(
+            new THREE.TorusGeometry(digitSize/3, digitSize/6, 16, 32),
+            new THREE.MeshBasicMaterial()
+          );
+          topCircle.position.y = digitSize/3;
+          eightGroup.add(topCircle);
           
-          topMesh.position.y = digitSize/3;
-          bottomMesh.position.y = -digitSize/3;
-          
-          // Create a group to hold both spheres
-          const group = new THREE.Group();
-          group.add(topMesh);
-          group.add(bottomMesh);
+          // Bottom circle
+          const bottomCircle = new THREE.Mesh(
+            new THREE.TorusGeometry(digitSize/3, digitSize/6, 16, 32),
+            new THREE.MeshBasicMaterial()
+          );
+          bottomCircle.position.y = -digitSize/3;
+          eightGroup.add(bottomCircle);
           
           // Use a sphere for simplicity
           geometry = new THREE.SphereGeometry(digitSize/1.5, 32, 16);
           break;
+          
         default:
           geometry = new THREE.BoxGeometry(digitSize, digitSize * 1.5, 1);
       }
@@ -244,6 +277,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
       // Position the digits
       mesh.position.x = startX + index * spacing;
       mesh.position.y = -100; // Start below view
+      mesh.position.z = -10; // Position behind quotes
       
       // Add to scene and track
       scene.add(mesh);
@@ -332,8 +366,12 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
         const floatProgress = (progress - 0.6) / 0.4;
         obj.position.y = Math.sin(floatProgress * Math.PI * 2) * 0.5;
         
+        // Move digits to form a backdrop behind the quotes
+        obj.position.z = -15; // Position further back when quotes are shown
+        
         // Slow continuous rotation
         obj.rotation.y += 0.01;
+        obj.rotation.x += 0.005;
       }
     });
     
@@ -376,6 +414,9 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
     objectsRef.current.forEach((obj, index) => {
       obj.rotation.y += 0.005;
       obj.position.y = Math.sin(Date.now() * 0.001 + index) * 0.3;
+      
+      // Keep digits visible behind the quotes
+      obj.position.z = -15 + Math.sin(Date.now() * 0.0003 + index) * 2;
     });
     
     // Subtle particle movement
