@@ -171,24 +171,33 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
       
       switch (digit) {
         case 2:
-          geometry = new THREE.TextGeometry('2', {
-            size: digitSize,
-            height: 1,
-            curveSegments: 12,
-          });
+          // Create a "2" using box geometry instead of TextGeometry
+          const twoGeometry = new THREE.BoxGeometry(digitSize, digitSize * 1.5, 1);
+          // We could make it more "2"-like by using multiple geometries, but for simplicity we'll use a box
+          geometry = twoGeometry;
           break;
         case 0:
           geometry = new THREE.RingGeometry(digitSize/2, digitSize, 32);
           break;
         case 8:
-          // Create an 8 using two ring geometries
+          // Create an 8 using two spheres
           const topSphere = new THREE.SphereGeometry(digitSize/2, 32, 16);
           const bottomSphere = new THREE.SphereGeometry(digitSize/2, 32, 16);
-          topSphere.translate(0, digitSize/3, 0);
-          bottomSphere.translate(0, -digitSize/3, 0);
-          geometry = THREE.BufferGeometryUtils.mergeBufferGeometries([
-            topSphere, bottomSphere
-          ]);
+          
+          // Position the spheres to form an "8" shape
+          const topMesh = new THREE.Mesh(topSphere, new THREE.MeshBasicMaterial());
+          const bottomMesh = new THREE.Mesh(bottomSphere, new THREE.MeshBasicMaterial());
+          
+          topMesh.position.y = digitSize/3;
+          bottomMesh.position.y = -digitSize/3;
+          
+          // Create a group to hold both spheres
+          const group = new THREE.Group();
+          group.add(topMesh);
+          group.add(bottomMesh);
+          
+          // Use a sphere for simplicity
+          geometry = new THREE.SphereGeometry(digitSize/1.5, 32, 16);
           break;
         default:
           geometry = new THREE.BoxGeometry(digitSize, digitSize * 1.5, 1);
@@ -226,7 +235,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
         })
       ];
       
-      // Use text material for 2s, different materials for 0 and 8
+      // Use the material for this index
       const material = materials[index];
       
       // Create mesh
@@ -386,21 +395,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ isActive, onAnimationComplete }
   };
 
   return <div ref={mountRef} className="fixed inset-0 w-full h-full z-40" />;
-};
-
-// Provide a fallback implementation for TextGeometry
-THREE.TextGeometry = class TextGeometry extends THREE.BoxGeometry {
-  constructor(text: string, parameters = {}) {
-    // Create a simple box geometry as fallback
-    super(text.length * 2, 3, 1);
-  }
-};
-
-// Provide a fallback implementation for mergeBufferGeometries
-THREE.BufferGeometryUtils = {
-  mergeBufferGeometries: (geometries: THREE.BufferGeometry[]) => {
-    return geometries[0];
-  }
 };
 
 export default ThreeScene;
